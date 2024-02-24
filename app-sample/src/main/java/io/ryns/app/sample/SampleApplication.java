@@ -1,5 +1,8 @@
 package io.ryns.app.sample;
 
+import io.ryns.platform.core.persist.MemoryPersistenceService;
+import io.ryns.platform.core.persist.PersistenceService;
+import io.ryns.platform.core.persist.PostgresPersistenceService;
 import io.ryns.platform.core.util.Utils;
 import io.ryns.platform.web.ApplicationStarter;
 

@@ -1,8 +1,9 @@
-package io.ryns.app.sample.common.init.http;
+package io.ryns.app.sample.common.http;
 
 import java.util.List;
 
 import io.ryns.platform.core.impl.request.http.HttpRouteManagerImpl;
+import io.ryns.platform.core.repository.ValueRepository;
 import io.ryns.platform.core.request.http.HttpRouteManager;
 import io.ryns.platform.core.resource.ResourceManagerBinding;
 

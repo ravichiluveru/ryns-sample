@@ -1,4 +1,4 @@
-package io.ryns.app.sample.common.init;
+package io.ryns.app.sample.common.application;
 
 import io.ryns.platform.core.application.Application;
 import io.ryns.platform.core.impl.application.ApplicationImpl;

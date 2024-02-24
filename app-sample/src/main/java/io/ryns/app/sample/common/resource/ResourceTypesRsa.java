@@ -1,8 +1,14 @@
-package io.ryns.app.sample.common.init.resource;
+package io.ryns.app.sample.common.resource;
 
-import io.ryns.app.sample.common.init.http.HttpRoutesRsa;
-import io.ryns.app.sample.common.init.authorization.AuthorizationPoliciesRsa;
+import io.ryns.app.sample.book.BookManager;
+import io.ryns.app.sample.book.BookPersistable;
+import io.ryns.app.sample.common.action.ActionsRsa;
+import io.ryns.app.sample.common.authorization.AuthorizationPoliciesRsa;
+import io.ryns.app.sample.common.authorization.PolicyFieldsRsa;
+import io.ryns.app.sample.common.http.HttpRoutesRsa;
+import io.ryns.app.sample.common.user.UsersRsa;
 import io.ryns.platform.common.init.ResourceTypesRsw;
+import io.ryns.platform.core.impl.persist.sql.UpdateTransactionPersistable;
 import io.ryns.platform.core.impl.resource.ResourceTypeImpl;
 import io.ryns.platform.core.impl.resource.ResourceTypes;
 import io.ryns.platform.core.request.RequestContext;
@@ -12,7 +18,7 @@ import io.ryns.platform.core.util.SetCollector;
 
 import java.util.function.Function;
 
-import static io.ryns.app.sample.common.init.ApplicationsRsa.SAMPLE;
+import static io.ryns.app.sample.common.application.ApplicationsRsa.SAMPLE;
 
 /**
  * @author ravi.chiluveru (Ravi Kumar Chiluveru)
@@ -40,8 +46,14 @@ public interface ResourceTypesRsa {
 
     ResourceType HTTP_REQ_MAPPINGS_RSA = ALL.add(I.type(ResourceTypesRsw.HTTP_ROUTES_RSW, HttpRoutesRsa.class));
     ResourceType AUTHORIZATION_POLICIES_RSA = ALL.add(I.type(ResourceTypes.AUTHORIZATION_POLICIES, AuthorizationPoliciesRsa.class));
+    ResourceType AUTHORIZATION_POLICY_FIELDS_RSA = ALL.add(I.type(ResourceTypes.POLICY_FIELD, PolicyFieldsRsa.class));
     ResourceType AUTHORIZATION_POLICY_STATEMENTS_RSA = ALL.add(I.type(ResourceTypes.AUTHORIZATION_POLICY_STATEMENTS, AuthorizationPoliciesRsa.class));
-//    ResourceType USERS_ALB = ALL.add(ResourceTypes.USER, UsersAlb.class);
+
+    ResourceType ACTIONS_RSA = ALL.add(I.type(ResourceTypes.ACTIONS, ActionsRsa.class));
+    ResourceType USERS_RSA = ALL.add(I.type(ResourceTypes.USERS, UsersRsa.class));
+    ResourceType UPDATE_TRANSACTION = ALL.add(I.type(ResourceTypes.PERSIST_UPDATE_TRANSACTION_PERSISTABLE, UpdateTransactionPersistable.class));
+    ResourceType BOOK_PERSISTABLE = ALL.add(I.type("11", BookPersistable.class, BookManager::get));
+
 
 
     static void init() {

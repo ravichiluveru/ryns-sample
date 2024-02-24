@@ -28,6 +28,14 @@ dependencies {
     runtimeOnly("javax.xml.bind:jaxb-api")
     runtimeOnly("javax.activation:activation")
     runtimeOnly("com.sun.mail:javax.mail")
+    runtimeOnly("io.jsonwebtoken:jjwt-api")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl")
+    add("implementation", "io.jsonwebtoken:jjwt-api:0.11.5")
+    add("implementation", "io.jsonwebtoken:jjwt-impl:0.11.5")
+    add("implementation", "io.jsonwebtoken:jjwt-gson:0.11.5")
+    add("implementation", "com.nimbusds:nimbus-jose-jwt:9.8.1")
+
+
 
 }
 tasks.jar {

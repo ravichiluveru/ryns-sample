@@ -8,8 +8,6 @@ on:
   workflow_dispatch:
 
 env:
-#  ENVIRONMENT: stage
-#  PLATFORMS: linux/amd64
   DOCKERFILE: ./Docker/Dockerfile
   IS_MAIN: ${{ github.ref == 'refs/heads/main' }}
   build_alogbook: true
@@ -17,14 +15,13 @@ env:
 jobs:
   build-and-push:
     name: Build and Push Docker to AWS ECR
-  #    runs-on: default
     runs-on: ubuntu-latest
     outputs:
       releasedVersion: ${{ steps.init.outputs.releasedVersion }}
     steps:
       - name: 0. Set env variable
         run: |
-          echo "deploy_alogbook=${{ env.IS_MAIN == 'true' && env.build_alogbook}}" >> "$GITHUB_ENV"
+          echo "deploy_sample=${{ env.IS_MAIN == 'true' && env.build_sample}}" >> "$GITHUB_ENV"
 
       #Step 1. Checkout Source
       - name: 1. Checkout Source
@@ -38,11 +35,6 @@ jobs:
         #        run: echo "::set-output name=releaseVersion::$(date +'1.0.%y%j%H%M')"
         #          build_version="1.0.231252002"
         run: ./scripts/generate-release-version.sh
-      #STEP 3. Read enterprise secrets
-#      - name: 3. Read enterprise secrets
-#        uses: actions/github-action-GetEnterpriseSecretsFromAWS@v0.0.13
-#        with:
-#          secretcategory: ARTIFACTORY,DEVX
       #Step 4. Set up JDK
       - name: 4. Set up JDK 17
         uses: actions/setup-java@v3
@@ -55,8 +47,6 @@ jobs:
 
       - name: 6. Build Jars
         run: ./scripts/build.sh -PreleaseVersion=${{ env.RELEASE_VERSION }}
-#        run: ./gradlew clean build shadowJar -PdoRelease=true "$@"
-
 
       - name: 7.1 Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -71,20 +61,19 @@ jobs:
         with:
           mask-password: 'true'
 
-      - name: 8.1 Build and Publish Ngimes alogbook Docker Image to ECR
-        if: ${{ env.build_alogbook == 'true' }}
+      - name: 8.1 Build and Publish RYNS sample Docker Image to ECR
+        if: ${{ env.build_sample == 'true' }}
         env:
           DOCKER_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: ./Docker/docker-image-push.sh alogbook
-
+        run: ./Docker/docker-image-push.sh sample
 
 #      - name: Build, tag, and push image to Amazon ECR
 #        id: build-docker-image
 #        env:
 #          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-#          ECR_REPOSITORY: ngimes-alogbook
+#          ECR_REPOSITORY: ryns-sample
 #          IMAGE_TAG: ${{ env.RELEASE_VERSION }}
-#          REPOSITORY: ngimes-alogbook
+#          REPOSITORY: ryns-sample
 #        run: |
 #          # Build a docker container and
 #          # push it to ECR so that it can
@@ -97,13 +86,13 @@ jobs:
 #        uses: aws-actions/amazon-ecs-render-task-definition@v1
 #        with:
 ##          task-definition: springboot-app-task-definition.json
-#          task-definition: ngimes-alogbook-task-definition.json
-#          container-name: ngimes-alogbook
+#          task-definition: ryns-sample-task-definition.json
+#          container-name: ryns-sample
 #          image: ${{ steps.build-image.outputs.image }}
 #      - name: Deploy Amazon ECS task definition
 #        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
 #        with:
 #          task-definition: ${{ steps.task-def.outputs.task-definition }}
-#          service: ngimes-alogbook
-#          cluster: ngimes-DevCluster
+#          service: ryns-sample
+#          cluster: ryns-DevCluster
 #          wait-for-service-stability: true

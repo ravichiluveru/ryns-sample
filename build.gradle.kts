@@ -9,7 +9,7 @@ plugins {
     java
 }
 
-group = "io.ryns"
+group = "io.ryns.sample"
 version = "1.0-SNAPSHOT"
 //Version matching with java version.
 
@@ -69,6 +69,11 @@ subprojects {
 
             add("implementation", "com.google.code.gson:gson:2.8.9")
             add("implementation", "com.zaxxer:HikariCP:4.0.3")
+
+            add("implementation", "javax.xml.bind:jaxb-api:2.3.1")
+            add("implementation", "javax.activation:activation:1.1.1")
+            add("implementation", "com.sun.mail:javax.mail:1.6.2")
+
 
             add("implementation", "io.jsonwebtoken:jjwt:0.7.0")
             add("implementation", "javax.xml.bind:jaxb-api:2.3.1")
