@@ -1,0 +1,25 @@
+#!/bin/bash
+. ./scripts/include.sh
+
+APPLICATION_NAME="${1}"
+
+DOCKER_IMAGE_TAG="${DOCKER_REGISTRY}/ngimes-${APPLICATION_NAME}:${RELEASE_VERSION}"
+
+logInfo "Pushing Docker Image Registry"
+logInfo "ENVIRONMENT: ${ENVIRONMENT}"
+logInfo "DOCKER_REGISTRY: ${DOCKER_REGISTRY}"
+logInfo "APPLICATION_NAME: ${APPLICATION_NAME}"
+logInfo "RELEASE_VERSION: ${RELEASE_VERSION}"
+logInfo "DOCKER_IMAGE_TAG: ${DOCKER_IMAGE_TAG}"
+
+
+CMD_BUILD="docker build ."
+CMD_BUILD="$CMD_BUILD --no-cache"
+CMD_BUILD="$CMD_BUILD --build-arg applicationName=$APPLICATION_NAME"
+CMD_BUILD="$CMD_BUILD --build-arg releaseVersion=$RELEASE_VERSION"
+CMD_BUILD="$CMD_BUILD --tag $DOCKER_IMAGE_TAG"
+CMD_BUILD="$CMD_BUILD -f Docker/Dockerfile "
+cmd "$CMD_BUILD"
+
+CMD_PUSH="docker push $DOCKER_IMAGE_TAG"
+cmd "$CMD_PUSH"

@@ -1,1 +1,1 @@
-# ryns-sample
+# RYNS SAMPLE Application

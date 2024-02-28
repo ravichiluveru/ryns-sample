@@ -1,0 +1,98 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  DOCKERFILE: ./Docker/Dockerfile
+  IS_MAIN: ${{ github.ref == 'refs/heads/main' }}
+  build_alogbook: true
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker to AWS ECR
+    runs-on: ubuntu-latest
+    outputs:
+      releasedVersion: ${{ steps.init.outputs.releasedVersion }}
+    steps:
+      - name: 0. Set env variable
+        run: |
+          echo "deploy_sample=${{ env.IS_MAIN == 'true' && env.build_sample}}" >> "$GITHUB_ENV"
+
+      #Step 1. Checkout Source
+      - name: 1. Checkout Source
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      #STEP 2. Init - Generate Release Version and Env Parameters
+      - name: 2. Init - Generate Release Version and Env Parameters
+        id: init
+        #        version is defined in build.gradle. below should match with build.gradle:14
+        #        run: echo "::set-output name=releaseVersion::$(date +'1.0.%y%j%H%M')"
+        #          build_version="1.0.231252002"
+        run: ./scripts/generate-release-version.sh
+      #Step 4. Set up JDK
+      - name: 4. Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+      #Step 5. Build and Publish Jars to Artifactory
+      - name: 5. Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: 6. Build Jars
+        run: ./scripts/build.sh -PreleaseVersion=${{ env.RELEASE_VERSION }}
+
+      - name: 7.1 Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: 'us-east-1'
+
+      - name: 7.2 Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: 'true'
+
+      - name: 8.1 Build and Publish RYNS sample Docker Image to ECR
+        if: ${{ env.build_sample == 'true' }}
+        env:
+          DOCKER_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: ./Docker/docker-image-push.sh sample
+
+#      - name: Build, tag, and push image to Amazon ECR
+#        id: build-docker-image
+#        env:
+#          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#          ECR_REPOSITORY: ryns-sample
+#          IMAGE_TAG: ${{ env.RELEASE_VERSION }}
+#          REPOSITORY: ryns-sample
+#        run: |
+#          # Build a docker container and
+#          # push it to ECR so that it can
+#          # be deployed to ECS.
+#          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG .
+#          docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
+#          echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+#      - name: Fill in the new image ID in the Amazon ECS task definition
+#        id: task-def
+#        uses: aws-actions/amazon-ecs-render-task-definition@v1
+#        with:
+##          task-definition: springboot-app-task-definition.json
+#          task-definition: ryns-sample-task-definition.json
+#          container-name: ryns-sample
+#          image: ${{ steps.build-image.outputs.image }}
+#      - name: Deploy Amazon ECS task definition
+#        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+#        with:
+#          task-definition: ${{ steps.task-def.outputs.task-definition }}
+#          service: ryns-sample
+#          cluster: ryns-DevCluster
+#          wait-for-service-stability: true

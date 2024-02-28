@@ -1,0 +1,61 @@
+name: Deploy Service
+description: 'Deploys Service'
+inputs:
+  service_name:
+    description: 'IAM Service Name'
+    required: true
+    type: string
+  service_version:
+    description: 'IAM Service Version'
+    required: true
+    type: string
+  deploy_environment:
+    description: 'Environment'
+    required: true
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Read enterprise secrets
+      uses: actions/github-action-GetEnterpriseSecretsFromAWS@v0.0.13
+      with:
+        secretcategory: ARTIFACTORY,DEVX
+    - name: Set deploy UUID
+      id: generate-deploy-uuid
+      uses: filipstefansson/uuid-action@v1
+        ######################################################
+      # Triggers workflow to deploy the new chart to stage #
+      ######################################################
+    - name: Trigger Deploy to Stage
+      uses: peter-evans/repository-dispatch@v1
+      with:
+        token: ${{ env.GITHUBWORKFLOW_ENTERPRISE_SECRETS_DEVX_WORKFLOW_TRIGGER_TOKEN }}
+        repository: flexport/infra-deployer
+        event-type: deploy-service
+        client-payload: |
+          {
+            "service_name": "${{ inputs.service_name }}",
+            "dry_run": "false",
+            "deploy_sub_environment": "${{ inputs.deploy_environment }}",
+            "helm_chart_version": "${{ inputs.service_version }}",
+            "unique_identifier": "${{ steps.generate-deploy-uuid.outputs.uuid }}"
+          }
+        ############################################################
+        # Displays the url while waiting for the deployment in the #
+        # Repository Dispatch workflow triggered above.            #
+        ############################################################
+#    - name: Wait for deploy to complete
+#      uses: actions/get-repository-dispatch-run-url@v0.0.12
+#      timeout-minutes: 30
+#      id: repository_dispatch_deploy_run_url
+#      env:
+#        GITHUB_TOKEN: ${{ env.GITHUBWORKFLOW_ENTERPRISE_SECRETS_DEVX_TRIGGER_TEMPLATES_TOKEN }}
+#        with:
+#          args: >-
+#            --wait completed
+#            --github-org ${{ github.repository_owner }}
+#            --github-repo "infra-deployer"
+#            --github-action-identifier ${{ steps.generate-deploy-uuid.outputs.uuid }}
+#            --github-url ${{ github.server_url }}
+#            --github-api-url ${{ github.api_url }}
